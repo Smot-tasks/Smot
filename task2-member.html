@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smot - Attendance Member</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="icon" type="image/jpeg" href="assets/smot.jpeg" />
+  </head>
+  <body>
+    <a href="index.html" class="floating-logo-link" title="Choose Task">
+      <img src="assets/smot.jpeg" alt="Smot Logo" class="floating-logo" />
+    </a>
+    <div class="container">
+      <nav class="navbar">
+        <h1>Attendance Member</h1>
+        <a href="task2.html" class="btn btn-secondary">Switch Role</a>
+      </nav>
+
+      <!-- Create Event Section -->
+      <section class="section" id="createEventSection">
+        <h2>Create New Event</h2>
+        <form id="eventForm">
+          <div class="form-group">
+            <label for="eventName">Event Name:</label>
+            <input type="text" id="eventName" required placeholder="Enter event name" />
+          </div>
+          <div class="form-group">
+            <label for="leaderName">Leader Name:</label>
+            <input type="text" id="leaderName" required placeholder="Enter leader name" />
+          </div>
+          <div class="form-group">
+            <label for="eventDate">Event Date:</label>
+            <input type="date" id="eventDate" required />
+          </div>
+          <button type="submit" class="btn">Create Event</button>
+        </form>
+        <p id="formStatus" class="form-status" role="status"></p>
+      </section>
+
+      <!-- Events Section -->
+      <section class="section">
+        <h2>Events</h2>
+        <div id="eventsList" class="events-container"></div>
+      </section>
+
+      <!-- Attendance Section (hidden until event selected) -->
+      <section class="section hidden" id="attendanceSection">
+        <h2>Attendance for: <span id="selectedEventName"></span></h2>
+        <div id="attendanceSummary" class="attendance-summary"></div>
+        <div style="overflow-x: auto;">
+          <table class="attendance-table" id="attendanceTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Member</th>
+                <th>Present</th>
+                <th>Arrival Time</th>
+                <th>Leave Time</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceBody"></tbody>
+          </table>
+        </div>
+        <p id="attendanceStatus" class="form-status" role="status" style="margin-top: 15px;"></p>
+      </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script type="module" src="js/task2-member.js"></script>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Attendance members collection
+    match /attendance_members/{memberId} {
+      allow read, write: if true;
+    }
+    
+    // Attendance events collection
+    match /attendance_events/{eventId} {
+      allow read, write: if true;
+    }
+    
+    // Attendance records collection
+    match /attendance_records/{recordId} {
+      allow read, write: if true;
+    }
+    
+    // Original task collections
+    match /events/{eventId} {
+      allow read, write: if true;
+    }
+    
+    match /reports/{reportId} {
+      allow read, write: if true;
+    }
+  }
+}
