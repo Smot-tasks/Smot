@@ -1,27 +1,43 @@
 rules_version = '2';
+
+// Smot app Firestore security rules
+// How to apply: Firebase Console -> Firestore Database -> Rules tab ->
+// paste these rules -> click "Publish".
+// https://console.firebase.google.com/project/smot-dolab-w-elshanta/firestore/rules
+
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // --- Task 1: Smot events & reports ---
+    // Events: everyone can read (members need the list),
+    // only signed-in admins can create/update/delete.
+    match /events/{eventId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    // Reports: everyone can read and create
+    // (members submit reports without signing in),
+    // only signed-in admins can edit/delete them.
+    match /reports/{reportId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if request.auth != null;
+    }
+
+    // --- Task 2: Attendance ---
     // Attendance members collection
     match /attendance_members/{memberId} {
       allow read, write: if true;
     }
-    
+
     // Attendance events collection
     match /attendance_events/{eventId} {
       allow read, write: if true;
     }
-    
+
     // Attendance records collection
     match /attendance_records/{recordId} {
-      allow read, write: if true;
-    }
-    
-    // Original task collections
-    match /events/{eventId} {
-      allow read, write: if true;
-    }
-    
-    match /reports/{reportId} {
       allow read, write: if true;
     }
   }

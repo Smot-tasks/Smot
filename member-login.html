@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smot - Member Login</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="icon" type="image/jpeg" href="assets/smot.jpeg" />
+  </head>
+  <body>
+    <a href="index.html" class="floating-logo-link" title="Choose Task">
+      <img src="assets/smot.jpeg" alt="Smot Logo" class="floating-logo" />
+    </a>
+    <div class="container">
+      <div class="login-box">
+        <h1>Smot Member</h1>
+        <h2>Enter Your Details</h2>
+        <form id="memberLoginForm">
+          <div class="form-group">
+            <label for="leaderName">Leader Name:</label>
+            <input type="text" id="leaderName" required />
+          </div>
+          <div class="form-group">
+            <label for="supportName">Support Name:</label>
+            <input type="text" id="supportName" required />
+          </div>
+          <button type="submit" class="btn">Continue</button>
+          <p id="error" class="error"></p>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script type="module" src="js/member-login.js"></script>
+  </body>
+</html>

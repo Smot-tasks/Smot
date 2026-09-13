@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smot - Admin Dashboard</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="icon" type="image/jpeg" href="assets/smot.jpeg" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+  </head>
+  <body>
+    <a href="index.html" class="floating-logo-link" title="Choose Task">
+      <img src="assets/smot.jpeg" alt="Smot Logo" class="floating-logo" />
+    </a>
+    <div class="container">
+      <nav class="navbar">
+        <div>
+          <h1>Smot Admin Dashboard</h1>
+          <h2 id="adminGreeting" style="margin: 0; font-size: 1.2rem; font-weight: 400;"></h2>
+        </div>
+        <div>
+          <a
+            href="member-login.html"
+            class="btn"
+            target="_blank"
+            style="margin-right: 10px"
+            >Member View</a
+          >
+          <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+        </div>
+      </nav>
+
+      <section class="section">
+        <form id="eventForm">
+          <h2>Create New Event</h2>
+          <div class="form-group">
+            <label for="eventName">Event Name:</label>
+            <input type="text" id="eventName" required />
+          </div>
+          <div class="form-group">
+            <label for="eventDate">Event Date:</label>
+            <input type="date" id="eventDate" required />
+          </div>
+
+          <h3>Items</h3>
+          <div id="itemsList">
+            <div class="item-row">
+              <input
+                type="text"
+                class="item-name"
+                placeholder="Item name"
+                required
+              />
+              <input
+                type="number"
+                class="item-qty"
+                placeholder="Quantity"
+                min="0"
+                required
+              />
+            </div>
+          </div>
+          <button type="button" id="addItemBtn" class="btn btn-small">
+            + Add Item
+          </button>
+          <button type="submit" class="btn">Create Event</button>
+        </form>
+        <p id="formStatus" class="form-status" role="status"></p>
+      </section>
+
+      <section class="section">
+        <h2>Events</h2>
+        <div id="eventsList" class="events-container"></div>
+      </section>
+
+      <section class="section" id="reportsSection">
+        <h2>Reports</h2>
+        <div id="reportEventsList" class="reports-container"></div>
+      </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script type="module" src="js/admin.js"></script>
+  </body>
+</html>
