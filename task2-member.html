@@ -48,6 +48,17 @@
       <section class="section hidden" id="attendanceSection">
         <h2>Attendance for: <span id="selectedEventName"></span></h2>
         <div id="attendanceSummary" class="attendance-summary"></div>
+        <div class="form-group" style="margin-top: 15px;">
+          <input type="text" id="memberSearch" placeholder="🔍 Search members..." class="search-input" />
+        </div>
+        <!-- Detail Panel (hidden by default, shown when clicking summary cards) -->
+        <div id="memberDetailPanel" class="member-detail-panel hidden">
+          <div class="detail-panel-header">
+            <h3 id="detailPanelTitle"></h3>
+            <button class="btn btn-secondary btn-small" id="closeDetailBtn">✕ Close</button>
+          </div>
+          <div id="memberDetailList"></div>
+        </div>
         <div style="overflow-x: auto;">
           <table class="attendance-table" id="attendanceTable">
             <thead>

@@ -7,6 +7,8 @@ import {
 let currentEventId = null;
 let currentEvent = null;
 let allMembers = [];
+let currentRecords = [];
+let currentSearchTerm = "";
 
 document.addEventListener("DOMContentLoaded", () => { init(); });
 
@@ -72,10 +74,18 @@ function loadAttendance(eid) {
   if (!body) return;
   const q = query(collection(db, "attendance_records"), where("eventId", "==", eid));
   onSnapshot(q, (snap) => {
-    const recs = []; snap.forEach((r) => recs.push({ id: r.id, ...r.data() }));
-    renderTable(body, recs);
-    updateSummary(recs);
+    currentRecords = []; snap.forEach((r) => currentRecords.push({ id: r.id, ...r.data() }));
+    filterAndRender(body);
+    updateSummary(currentRecords);
   });
+}
+
+function filterAndRender(body) {
+  const term = currentSearchTerm.toLowerCase();
+  const filtered = term
+    ? currentRecords.filter(r => r.memberName.toLowerCase().includes(term))
+    : currentRecords;
+  renderTable(body, filtered);
 }
 
 function renderTable(tbody, recs) {
@@ -98,8 +108,67 @@ function updateSummary(recs) {
   if (!div) return;
   const pc = recs.filter((r) => r.attended).length;
   const tm = allMembers.length;
-  div.innerHTML = `<div class="summary-card"><div class="number">${tm}</div><div class="label">Total Members</div></div><div class="summary-card"><div class="number" style="color:var(--success-color);">${pc}</div><div class="label">Present</div></div><div class="summary-card"><div class="number" style="color:var(--error-color);">${tm - pc}</div><div class="label">Absent</div></div>`;
+  const ac = tm - pc;
+  div.innerHTML = `<div class="summary-card clickable" data-filter="total"><div class="number">${tm}</div><div class="label">Total Members</div><div class="hint">Click to view</div></div><div class="summary-card clickable present-card" data-filter="present"><div class="number" style="color:var(--success-color);">${pc}</div><div class="label">Present</div><div class="hint">Click to view & edit</div></div><div class="summary-card clickable absent-card" data-filter="absent"><div class="number" style="color:var(--error-color);">${ac}</div><div class="label">Absent</div><div class="hint">Click to view & edit</div></div>`;
 }
+
+function showDetailPanel(filter) {
+  const panel = document.getElementById("memberDetailPanel");
+  const title = document.getElementById("detailPanelTitle");
+  const list = document.getElementById("memberDetailList");
+  if (!panel || !title || !list) return;
+
+  let filtered = [];
+  let titleText = "";
+
+  if (filter === "present") {
+    filtered = currentRecords.filter(r => r.attended);
+    titleText = `✅ Present Members (${filtered.length})`;
+  } else if (filter === "absent") {
+    filtered = currentRecords.filter(r => !r.attended);
+    titleText = `❌ Absent Members (${filtered.length})`;
+  } else {
+    filtered = currentRecords;
+    titleText = `👥 All Members (${filtered.length})`;
+  }
+
+  title.textContent = titleText;
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<p style="opacity:0.7;padding:20px;text-align:center;">No members in this category.</p>';
+  } else {
+    let html = '';
+    filtered.forEach((r, i) => {
+      html += `<div class="detail-member-card" data-record-id="${r.id}" data-member="${r.memberName}">
+        <div class="detail-member-info">
+          <span class="detail-member-number">${i + 1}</span>
+          <span class="detail-member-name">${r.memberName}</span>
+          <span class="${r.attended ? 'status-present' : 'status-absent'} detail-status-badge">${r.attended ? 'Present' : 'Absent'}</span>
+        </div>
+        <div class="detail-member-actions">
+          <label class="detail-toggle-label">
+            <input type="checkbox" class="detail-attendance-toggle" data-member="${r.memberName}" ${r.attended ? 'checked' : ''} />
+            <span>Present</span>
+          </label>
+          <input type="time" class="time-input detail-arrival-input" data-member="${r.memberName}" value="${r.arrivalTime || ''}" ${!r.attended ? 'disabled' : ''} />
+          <input type="time" class="time-input detail-leave-input" data-member="${r.memberName}" value="${r.leaveTime || ''}" ${!r.attended ? 'disabled' : ''} />
+          <button class="btn btn-small detail-save-btn" data-member="${r.memberName}">💾 Save</button>
+        </div>
+      </div>`;
+    });
+    list.innerHTML = html;
+  }
+
+  panel.classList.remove("hidden");
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  anime({ targets: ".detail-member-card", translateX: [30, 0], opacity: [0, 1], delay: anime.stagger(50), easing: "easeOutExpo" });
+}
+
+function closeDetailPanel() {
+  const panel = document.getElementById("memberDetailPanel");
+  if (panel) panel.classList.add("hidden");
+}
+
 async function saveAttendance(member, attended, arrival, leave) {
   try {
     const eq = query(collection(db, "attendance_records"), where("eventId", "==", currentEventId), where("memberName", "==", member));
@@ -149,5 +218,68 @@ function setupListeners() {
       else { st.textContent = "Error saving attendance."; st.className = "form-status error"; }
     }
   });
+
+  // Search input listener
+  const si = document.getElementById("memberSearch");
+  if (si) si.addEventListener("input", (e) => {
+    currentSearchTerm = e.target.value;
+    const body = document.getElementById("attendanceBody");
+    if (body) filterAndRender(body);
+  });
+
+  // Summary card click listener
+  const as = document.getElementById("attendanceSummary");
+  if (as) as.addEventListener("click", (e) => {
+    const card = e.target.closest(".clickable");
+    if (card) showDetailPanel(card.dataset.filter);
+  });
+
+  // Close detail panel button
+  const cdb = document.getElementById("closeDetailBtn");
+  if (cdb) cdb.addEventListener("click", () => closeDetailPanel());
+
+  // Detail panel: toggle attendance (enable/disable time inputs)
+  const mdp = document.getElementById("memberDetailList");
+  if (mdp) {
+    mdp.addEventListener("change", (e) => {
+      if (e.target.classList.contains("detail-attendance-toggle")) {
+        const mn = e.target.dataset.member;
+        const card = e.target.closest(".detail-member-card");
+        const ai = card.querySelector(".detail-arrival-input");
+        const li = card.querySelector(".detail-leave-input");
+        const badge = card.querySelector(".detail-status-badge");
+        if (e.target.checked) {
+          ai.disabled = false;
+          li.disabled = false;
+          badge.className = "status-present detail-status-badge";
+          badge.textContent = "Present";
+        } else {
+          ai.disabled = true;
+          li.disabled = true;
+          badge.className = "status-absent detail-status-badge";
+          badge.textContent = "Absent";
+        }
+      }
+    });
+
+    // Detail panel: save button
+    mdp.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("detail-save-btn")) {
+        const mn = e.target.dataset.member;
+        const card = e.target.closest(".detail-member-card");
+        const cb = card.querySelector(".detail-attendance-toggle");
+        const ai = card.querySelector(".detail-arrival-input");
+        const li = card.querySelector(".detail-leave-input");
+        const att = cb.checked;
+        let arr = ai.value;
+        const lv = li.value;
+        if (att && !arr) { const now = new Date(); arr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }); ai.value = arr; }
+        const ok = await saveAttendance(mn, att, arr, lv);
+        const st = document.getElementById("attendanceStatus");
+        if (ok) { st.textContent = `Attendance saved for ${mn}!`; st.className = "form-status success"; setTimeout(() => { st.textContent = ""; }, 2000); }
+        else { st.textContent = "Error saving attendance."; st.className = "form-status error"; }
+      }
+    });
+  }
 }
 
