@@ -82,16 +82,17 @@ function loadAttendance(eid) {
 
 function filterAndRender(body) {
   const term = currentSearchTerm.toLowerCase();
-  const filtered = term
-    ? currentRecords.filter(r => r.memberName.toLowerCase().includes(term))
-    : currentRecords;
-  renderTable(body, filtered);
+  const membersToRender = term
+    ? allMembers.filter(m => m.name.toLowerCase().includes(term))
+    : null;
+  renderTable(body, currentRecords, membersToRender);
 }
 
-function renderTable(tbody, recs) {
+function renderTable(tbody, recs, membersToRender) {
   tbody.innerHTML = "";
-  if (allMembers.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;opacity:0.7;">No members in system.</td></tr>'; return; }
-  allMembers.forEach((m, i) => {
+  const members = membersToRender || allMembers;
+  if (members.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;opacity:0.7;">No members found.</td></tr>'; return; }
+  members.forEach((m, i) => {
     const ex = recs.find((r) => r.memberName === m.name);
     const att = ex ? ex.attended : false;
     const arr = ex ? (ex.arrivalTime || "") : "";
