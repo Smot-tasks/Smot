@@ -4,6 +4,13 @@
   padding: 0;
 }
 
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 /* Define CSS Variables for easy theme management */
 :root {
   --bg-color: #1a1a2e; /* Deep dark background */
@@ -109,7 +116,9 @@ body::after {
 
 .container {
   max-width: 900px;
+  width: 100%;
   margin: 0 auto;
+  padding: 0 10px;
 }
 
 .login-box,
@@ -517,7 +526,13 @@ input:focus {
 /* For tablets and smaller devices */
 @media (max-width: 768px) {
   body {
-    padding: 100px 10px 10px 10px;
+    padding: 100px 5px 10px 5px;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0 5px;
+  }
   }
 
   .floating-logo-link {
@@ -909,6 +924,40 @@ input:focus {
   margin-top: 4px;
 }
 
+/* --- Phone fixes (no gap on right) --- */
+@media (max-width: 600px) {
+  body {
+    padding: 100px 0 0 0;
+    overflow-x: hidden;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0 8px;
+    width: 100%;
+  }
+
+  .navbar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .floating-logo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .floating-logo-link {
+    top: 8px;
+    left: 8px;
+  }
+
+  .section {
+    padding: 12px;
+  }
+}
+
 /* --- Attendance Responsive --- */
 @media (max-width: 600px) {
   .attendance-table {
@@ -933,6 +982,28 @@ input:focus {
 }
 
 @media (max-width: 400px) {
+  body {
+    padding: 80px 0 0 0;
+  }
+
+  .container {
+    padding: 0 4px;
+  }
+
+  .floating-logo {
+    width: 50px;
+    height: 50px;
+  }
+
+  .floating-logo-link {
+    top: 5px;
+    left: 5px;
+  }
+
+  .section {
+    padding: 8px;
+  }
+
   .attendance-table th:nth-child(1),
   .attendance-table td:nth-child(1) {
     display: none;
@@ -940,6 +1011,15 @@ input:focus {
 
   .attendance-table .time-input {
     width: 70px;
+  }
+
+  .navbar h1 {
+    font-size: 1.2rem;
+  }
+
+  .btn {
+    padding: 6px 10px;
+    font-size: 0.85rem;
   }
 }
 
