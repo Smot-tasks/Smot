@@ -38,6 +38,18 @@ body {
   --success-color: #6bff9b; /* Green for success */
   --warning-color: #ffeb3b; /* Yellow for warnings */
   --border-radius: 10px;
+  /* Fluid spacing scale */
+  --space-xs: clamp(4px, 1vw, 8px);
+  --space-sm: clamp(8px, 2vw, 16px);
+  --space-md: clamp(16px, 3vw, 24px);
+  --space-lg: clamp(24px, 5vw, 40px);
+  /* Fluid font sizes */
+  --font-xs: clamp(0.7rem, 1.5vw, 0.85rem);
+  --font-sm: clamp(0.8rem, 2vw, 1rem);
+  --font-md: clamp(1rem, 2.5vw, 1.2rem);
+  --font-lg: clamp(1.2rem, 3vw, 1.5rem);
+  --font-xl: clamp(1.5rem, 4vw, 2rem);
+  --font-2xl: clamp(2rem, 5vw, 3rem);
 }
 
 body {
@@ -45,9 +57,10 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   min-height: 100vh;
-  padding: 122px 20px 20px 20px; /* extra top space for the floating logo */
-  position: relative; /* Needed for pseudo-elements */
-  overflow-x: hidden; /* Prevent horizontal scroll from blurred elements */
+  min-height: 100dvh;
+  padding: clamp(90px, 15vw, 122px) clamp(0px, 2vw, 20px) clamp(10px, 3vw, 20px) clamp(0px, 2vw, 20px);
+  position: relative;
+  overflow-x: hidden;
 }
 
 /* --- Floating Brand Logo (top-left, click = go to Choose Task page) --- */
@@ -115,10 +128,10 @@ body::after {
 }
 
 .container {
-  max-width: 900px;
+  max-width: min(900px, 100vw - 16px);
   width: 100%;
   margin: 0 auto;
-  padding: 0 10px;
+  padding: 0 clamp(4px, 2vw, 16px);
 }
 
 .login-box,
@@ -296,20 +309,22 @@ input:focus {
   justify-content: space-between;
   align-items: center;
   background: var(--glass-bg-light);
-  padding: 20px;
+  padding: clamp(12px, 3vw, 20px);
   border-radius: var(--border-radius);
-  margin-bottom: 20px;
+  margin-bottom: clamp(10px, 3vw, 20px);
   border: 1px solid var(--glass-border);
   box-shadow: 0 8px 32px 0 var(--shadow-color);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  flex-wrap: wrap;
+  gap: clamp(8px, 2vw, 16px);
 }
 
 .section {
   background: var(--glass-bg-light);
-  padding: 25px;
+  padding: clamp(12px, 3vw, 25px);
   border-radius: var(--border-radius);
-  margin-bottom: 20px;
+  margin-bottom: clamp(10px, 3vw, 20px);
   border: 1px solid var(--glass-border);
   box-shadow: 0 8px 32px 0 var(--shadow-color);
   backdrop-filter: blur(10px);
@@ -898,27 +913,27 @@ input:focus {
 
 .attendance-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  gap: clamp(8px, 2vw, 15px);
+  margin-bottom: clamp(10px, 3vw, 20px);
 }
 
 .summary-card {
   background: var(--glass-bg-dark);
-  padding: 15px;
+  padding: clamp(10px, 3vw, 15px);
   border-radius: var(--border-radius);
   border: 1px solid var(--glass-border);
   text-align: center;
 }
 
 .summary-card .number {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 5vw, 2rem);
   font-weight: 700;
   color: var(--heading-color);
 }
 
 .summary-card .label {
-  font-size: 0.85rem;
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
   color: var(--text-color);
   opacity: 0.75;
   margin-top: 4px;
@@ -1131,39 +1146,38 @@ input:focus {
   background: var(--glass-bg-light);
   border: 1px solid var(--glass-border);
   border-radius: 8px;
-  padding: 12px 15px;
-  margin-bottom: 8px;
+  padding: clamp(8px, 2vw, 15px);
+  margin-bottom: clamp(4px, 1vw, 8px);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: clamp(6px, 2vw, 12px);
   transition: border-color 0.2s ease;
-}
-
-.detail-member-card:hover {
-  border-color: var(--primary-color);
+  flex-wrap: wrap;
 }
 
 .detail-member-info {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 180px;
-}
-
-.detail-member-number {
-  font-size: 0.8rem;
-  opacity: 0.6;
-  min-width: 20px;
+  gap: clamp(4px, 1vw, 10px);
+  min-width: min(180px, 40vw);
+  flex-shrink: 0;
 }
 
 .detail-member-name {
   font-weight: 600;
   color: var(--heading-color);
+  font-size: var(--font-sm);
+}
+
+.detail-member-number {
+  font-size: var(--font-xs);
+  opacity: 0.6;
+  min-width: 20px;
 }
 
 .detail-status-badge {
-  font-size: 0.75rem;
+  font-size: var(--font-xs);
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -1171,8 +1185,11 @@ input:focus {
 .detail-member-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: clamp(4px, 1vw, 10px);
   flex-wrap: wrap;
+  flex: 1;
+  justify-content: flex-end;
+  min-width: min(280px, 100%);
 }
 
 .detail-toggle-label {
@@ -1281,5 +1298,135 @@ input:focus {
   .detail-status-badge {
     font-size: 0.65rem;
     padding: 1px 6px;
+  }
+}
+
+/* --- Landscape orientation (phones) --- */
+@media (max-height: 500px) and (orientation: landscape) {
+  body {
+    padding: 60px 0 0 0;
+  }
+
+  .floating-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .floating-logo-link {
+    top: 5px;
+    left: 5px;
+  }
+
+  .navbar {
+    flex-direction: row;
+    padding: 8px 12px;
+  }
+
+  .section {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+
+  .attendance-summary {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .summary-card {
+    padding: 6px;
+  }
+
+  .summary-card .number {
+    font-size: 1.2rem;
+  }
+
+  .detail-member-card {
+    padding: 6px 10px;
+  }
+}
+
+/* --- Ultrawide / large screens --- */
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1200px;
+  }
+
+  .attendance-summary {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .summary-card .number {
+    font-size: 2.5rem;
+  }
+
+  .detail-member-card {
+    padding: 15px 20px;
+  }
+}
+
+/* --- Very large screens (4K) --- */
+@media (min-width: 2000px) {
+  .container {
+    max-width: 1600px;
+  }
+
+  body {
+    font-size: 1.2rem;
+  }
+
+  .navbar {
+    padding: 24px 30px;
+  }
+
+  .section {
+    padding: 30px;
+  }
+}
+
+/* --- Aspect ratio: ultra-narrow (fold phones, etc) --- */
+@media (max-width: 320px) {
+  .navbar h1 {
+    font-size: 1rem;
+  }
+
+  .navbar .btn {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+
+  .summary-card .number {
+    font-size: 1.2rem;
+  }
+
+  .summary-card .label {
+    font-size: 0.65rem;
+  }
+
+  .detail-member-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .detail-member-actions .time-input {
+    width: 100%;
+  }
+}
+
+/* --- Short screens (landscape laptops, etc) --- */
+@media (max-height: 600px) and (min-width: 768px) {
+  body {
+    padding-top: 80px;
+  }
+
+  .floating-logo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .section {
+    padding: 12px;
+    margin-bottom: 10px;
   }
 }
