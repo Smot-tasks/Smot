@@ -829,6 +829,110 @@ input:focus {
   padding: 0 15px 12px 15px;
 }
 
+/* --- Admin: Teams --- */
+.teams-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.team-card {
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius);
+  padding: 15px;
+}
+
+.team-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.team-card-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--heading-color);
+}
+
+.team-member-count {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.team-members-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.team-member-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--glass-bg-light);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--heading-color);
+}
+
+.team-member-badge button {
+  background: rgba(255, 107, 107, 0.2);
+  border: 1px solid rgba(255, 107, 107, 0.45);
+  color: var(--error-color);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.team-member-badge button:hover {
+  background: rgba(255, 107, 107, 0.4);
+}
+
+.team-add-member {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.team-add-member input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  background: var(--glass-bg-dark);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.team-add-member input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.team-add-member .btn {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+.delete-team-btn {
+  margin-top: 5px;
+}
+
 .btn-danger {
   background: rgba(255, 107, 107, 0.2);
   border: 1px solid rgba(255, 107, 107, 0.45);

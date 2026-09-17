@@ -76,6 +76,24 @@
         <div id="eventsList" class="events-container"></div>
       </section>
 
+      <section class="section">
+        <h2>Teams</h2>
+        <form id="teamForm">
+          <div class="form-group">
+            <label for="teamName">Team Name:</label>
+            <input
+              type="text"
+              id="teamName"
+              required
+              placeholder="Enter team name"
+            />
+          </div>
+          <button type="submit" class="btn">Create Team</button>
+        </form>
+        <p id="teamFormStatus" class="form-status" role="status"></p>
+        <div id="teamsList" class="teams-container"></div>
+      </section>
+
       <section class="section" id="reportsSection">
         <h2>Reports</h2>
         <div id="reportEventsList" class="reports-container"></div>
@@ -87,3 +105,5 @@
     <script type="module" src="js/admin.js"></script>
   </body>
 </html>
+
+

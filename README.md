@@ -4,7 +4,7 @@ A web application for tracking event inventory with admin and member views.
 
 ## Features
 
-- **Admin Panel**: Create events with inventory items, view all reports
+- **Admin Panel**: Create events with inventory items, manage teams and members, view all reports
 - **Member View**: Submit inventory reports after events, see discrepancies
 - **Firebase Integration**: Real-time data storage
 
@@ -21,7 +21,7 @@ The Firebase config is already set up in `js/firebase-config.js`. You need to:
 ### 2. Firestore Database
 1. Go to **Firestore Database** in Firebase Console
 2. Create database in **test mode** (for development)
-3. The app will automatically create the `events` and `reports` collections
+3. The app will automatically create the `events`, `reports`, and `teams` collections
 
 ### 3. Hosting (Optional)
 To host the website:
@@ -38,7 +38,8 @@ Or simply open `index.html` in a browser for local testing.
 1. Go to `index.html`
 2. Login with your admin credentials
 3. Create events with name, date, and items
-4. View all member reports
+4. Manage teams: create teams and add members to them
+5. View all member reports
 
 ### Member
 1. Go to `member.html`
