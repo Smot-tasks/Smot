@@ -1540,4 +1540,10 @@ input:focus {
 .team-card-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .team-card-header h3 { margin: 0; }
 .team-members { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+.team-add-label { margin: 14px 0 8px; font-size: 0.85rem; font-weight: 600; opacity: 0.7; }
+.team-add-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+button.member-badge { font-family: inherit; font-size: 0.9rem; cursor: pointer; }
+.team-add-member-badge:hover:not(:disabled) { background: rgba(102, 126, 234, 0.32); transform: translateY(-1px); }
+.team-add-member-badge .add-plus { font-weight: 700; color: #2e7d32; }
+.team-add-member-badge.in-team { opacity: 0.45; cursor: default; }
 

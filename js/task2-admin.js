@@ -47,14 +47,16 @@ function renderTeams() {
   list.innerHTML = "";
   if (allTeams.length === 0) { list.innerHTML = '<p style="opacity:0.7;">No teams created yet.</p>'; return; }
   allTeams.forEach((t) => {
-    const available = allMembers.filter((m) => !t.memberIds.includes(m.id));
-    const sel = available.map((m) => `<option value="${m.id}">${m.name}</option>`).join("");
+    const addGrid = allMembers.map((m) => {
+      const isIn = t.memberIds.includes(m.id);
+      return `<button type="button" class="member-badge team-add-member-badge${isIn ? " in-team" : ""}" data-team="${t.id}" data-id="${m.id}" data-name="${m.name}"${isIn ? " disabled" : ""}><span>${m.name}</span><span class="add-plus">${isIn ? "&#10003;" : "+"}</span></button>`;
+    }).join("") || '<p style="opacity:0.7;margin:0;">No members added yet.</p>';
     const membersHtml = (t.memberNames || []).map((n, i) =>
       `<span class="member-badge team-member-badge"><span>${n}</span><button class="btn btn-danger btn-small remove-team-member-btn" data-team="${t.id}" data-mid="${t.memberIds[i] || ""}" data-mname="${n}" style="padding:2px 8px;font-size:0.75rem;">&times;</button></span>`
     ).join("") || '<p style="opacity:0.7;margin:0;">No members in this team yet.</p>';
     const div = document.createElement("div");
     div.className = "team-card";
-    div.innerHTML = `<div class="team-card-header"><h3>${t.name}</h3><span style="opacity:0.7;font-size:0.9rem;">${(t.memberNames || []).length} member(s)</span><button class="btn btn-danger btn-small delete-team-btn" data-id="${t.id}">Delete</button></div><div class="team-members">${membersHtml}</div><div class="team-add-row" style="margin-top:10px;display:flex;gap:8px;align-items:center;"><select class="team-member-select" style="flex:1;min-width:160px;padding:6px;">${sel || '<option value="">All members are in teams</option>'}</select><button class="btn btn-small add-member-to-team-btn" data-id="${t.id}" ${sel ? "" : "disabled"}>Add Member</button></div>`;
+    div.innerHTML = `<div class="team-card-header"><h3>${t.name}</h3><span style="opacity:0.7;font-size:0.9rem;">${(t.memberNames || []).length} member(s)</span><button class="btn btn-danger btn-small delete-team-btn" data-id="${t.id}">Delete</button></div><div class="team-members">${membersHtml}</div><p class="team-add-label">Tap a member to add to this team:</p><div class="team-add-grid">${addGrid}</div>`;
     list.appendChild(div);
   });
   anime({ targets: "#teamsList .team-card", translateY: [30, 0], opacity: [0, 1], delay: anime.stagger(80) });
@@ -224,13 +226,9 @@ function setupListeners() {
   if (tl) tl.addEventListener("click", async (e) => {
     const card = e.target.closest(".team-card");
     if (!card) return;
-    if (e.target.classList.contains("add-member-to-team-btn")) {
-      const sel = card.querySelector(".team-member-select");
-      const mid = sel ? sel.value : "";
-      if (!mid) return;
-      const m = allMembers.find((x) => x.id === mid);
-      if (!m) return;
-      try { await updateDoc(doc(db, "attendance_teams", e.target.dataset.id), { memberIds: arrayUnion(mid), memberNames: arrayUnion(m.name) }); }
+    const addBadge = e.target.closest(".team-add-member-badge");
+    if (addBadge && !addBadge.disabled) {
+      try { await updateDoc(doc(db, "attendance_teams", addBadge.dataset.team), { memberIds: arrayUnion(addBadge.dataset.id), memberNames: arrayUnion(addBadge.dataset.name) }); }
       catch (err) { console.error(err); }
     } else if (e.target.classList.contains("remove-team-member-btn")) {
       try { await updateDoc(doc(db, "attendance_teams", e.target.dataset.team), { memberIds: arrayRemove(e.target.dataset.mid), memberNames: arrayRemove(e.target.dataset.mname) }); }
