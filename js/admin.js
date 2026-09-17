@@ -11,8 +11,6 @@ import {
   deleteDoc,
   where,
   doc,
-  arrayUnion,
-  arrayRemove,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -53,7 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setupEventListeners();
     loadEvents();
     loadReports();
-    loadTeams();
   }
 
   // Load events
@@ -401,58 +398,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Load teams (real-time)
-  function loadTeams() {
-    const teamsList = document.getElementById("teamsList");
-    if (!teamsList) return;
-
-    const q = query(collection(db, "teams"), orderBy("createdAt", "desc"));
-
-    onSnapshot(q, (snapshot) => {
-      teamsList.innerHTML = "";
-      if (snapshot.empty) {
-        teamsList.innerHTML =
-          '<p style="opacity:0.7;font-size:0.9rem;">No teams created yet.</p>';
-        return;
-      }
-      snapshot.forEach((doc) => {
-        const team = doc.data();
-        const div = document.createElement("div");
-        div.className = "team-card";
-        div.innerHTML = buildTeamCardHTML(doc.id, team);
-        teamsList.appendChild(div);
-      });
-
-      // Animate the team cards
-      anime({
-        targets: ".teams-container .team-card",
-        translateY: [50, 0],
-        opacity: [0, 1],
-        delay: anime.stagger(100), // 100ms delay between each card
-      });
-    });
-  }
-
-  // Build the HTML for a team card (also used to restore after Cancel)
-  function buildTeamCardHTML(teamId, team) {
-    const members = team.members || [];
-    const memberCount = members.length;
-
-    let membersHTML = "";
-    if (memberCount === 0) {
-      membersHTML =
-        '<p style="opacity:0.5;font-size:0.85rem;">No members in this team yet.</p>';
-    } else {
-      membersHTML = members
-        .map(
-          (member) => `
-            <div class="team-member-badge">
-              ${member}
-              <button class="remove-member-btn" data-team="${teamId}" data-member="${member}">×</button>
-            </div>
-          `,
-        )
-        .join("");
+  // Report printing helpers
 
     // Build printable HTML for a single report
     function buildReportPrintHTML(event, report) {
@@ -536,7 +482,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Open a printable PDF preview in a new tab and trigger browser print
-    function openReportPDF(eventId, reportId) {
+    async function openReportPDF(eventId, reportId) {
       const report = reportsData.get(reportId);
       if (!report) return;
 
@@ -579,74 +525,6 @@ document.addEventListener("DOMContentLoaded", () => {
         try { win.print(); } catch (e) { /* ignore */ }
       }, 350);
     }
-
-    return `
-
-    return `
-      <div class="team-card-header">
-        <h3>${team.name}</h3>
-        <span class="team-member-count">${memberCount} member(s)</span>
-      </div>
-      <div class="team-members-list">
-        ${membersHTML}
-      </div>
-      <div class="team-add-member">
-        <input type="text" class="team-member-input" placeholder="Add member name" />
-        <button class="btn btn-small add-member-btn" data-id="${teamId}">Add</button>
-      </div>
-      <button class="btn btn-danger btn-small delete-team-btn" data-id="${teamId}">Delete Team</button>
-    `;
-  }
-
-  // Create a new team
-  async function createTeam(name) {
-    try {
-      await addDoc(collection(db, "teams"), {
-        name: name.trim(),
-        members: [],
-        createdAt: new Date(),
-      });
-      return true;
-    } catch (error) {
-      console.error("Error creating team:", error);
-      return false;
-    }
-  }
-
-  // Add a member to a team
-  async function addMemberToTeam(teamId, memberName) {
-    try {
-      const teamRef = doc(db, "teams", teamId);
-      await updateDoc(teamRef, {
-        members: arrayUnion(memberName),
-      });
-      return true;
-    } catch (error) {
-      console.error("Error adding member to team:", error);
-      return false;
-    }
-  }
-
-  // Remove a member from a team
-  async function removeMemberFromTeam(teamId, memberName) {
-    try {
-      const teamRef = doc(db, "teams", teamId);
-      await updateDoc(teamRef, {
-        members: arrayRemove(memberName),
-      });
-    } catch (error) {
-      console.error("Error removing member from team:", error);
-    }
-  }
-
-  // Delete a team
-  async function deleteTeam(teamId) {
-    try {
-      await deleteDoc(doc(db, "teams", teamId));
-    } catch (error) {
-      console.error("Error deleting team:", error);
-    }
-  }
 
   function setupEventListeners() {
     // Initialize modern date picker (store instance so we can clear/set it later)
@@ -878,115 +756,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // --- Teams section event listeners ---
-
-    // Create team form
-    const teamForm = document.getElementById("teamForm");
-    if (teamForm) {
-      teamForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const teamName = document.getElementById("teamName");
-        const teamFormStatus = document.getElementById("teamFormStatus");
-        const name = teamName ? teamName.value.trim() : "";
-
-        if (!name) {
-          if (teamFormStatus) {
-            teamFormStatus.textContent = "⚠ Please enter a team name.";
-            teamFormStatus.className = "form-status error";
-          }
-          return;
-        }
-
-        const submitBtn = teamForm.querySelector('button[type="submit"]');
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.textContent = "Creating...";
-        }
-
-        try {
-          if (await createTeam(name)) {
-            if (teamFormStatus) {
-              teamFormStatus.textContent = "✓ Team created successfully!";
-              teamFormStatus.className = "form-status success";
-            }
-            if (teamName) teamName.value = "";
-          } else {
-            if (teamFormStatus) {
-              teamFormStatus.textContent =
-                "✗ Could not create team. Please try again.";
-              teamFormStatus.className = "form-status error";
-            }
-          }
-        } finally {
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "Create Team";
-          }
-        }
-      });
-    }
-
-    // Event delegation for teams list (add member, remove member, delete team)
-    const teamsList = document.getElementById("teamsList");
-    if (teamsList) {
-      teamsList.addEventListener("click", async (e) => {
-        // Handle Add Member
-        const addBtn = e.target.closest(".add-member-btn");
-        if (addBtn) {
-          const teamId = addBtn.dataset.id;
-          const input = addBtn
-            .closest(".team-add-member")
-            .querySelector(".team-member-input");
-          const memberName = input ? input.value.trim() : "";
-
-          if (!memberName) {
-            return;
-          }
-
-          addBtn.disabled = true;
-          addBtn.textContent = "Adding...";
-
-          try {
-            const success = await addMemberToTeam(teamId, memberName);
-            if (success) {
-              if (input) input.value = "";
-            } else {
-              alert("Could not add member. Please try again.");
-            }
-          } catch (error) {
-            console.error("Error adding member:", error);
-            alert(
-              `Could not add member${error && error.code ? ` (${error.code})` : ""}.`,
-            );
-          } finally {
-            addBtn.disabled = false;
-            addBtn.textContent = "Add";
-          }
-          return;
-        }
-
-        // Handle Remove Member
-        const removeBtn = e.target.closest(".remove-member-btn");
-        if (removeBtn) {
-          const teamId = removeBtn.dataset.team;
-          const memberName = removeBtn.dataset.member;
-          if (confirm(`Remove "${memberName}" from this team?`)) {
-            await removeMemberFromTeam(teamId, memberName);
-          }
-          return;
-        }
-
-        // Handle Delete Team
-        if (e.target.classList.contains("delete-team-btn")) {
-          const teamId = e.target.dataset.id;
-          if (confirm("Are you sure you want to delete this team?")) {
-            await deleteTeam(teamId);
-          }
-          return;
-        }
-      });
-    }
   }
 });
 
