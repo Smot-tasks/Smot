@@ -38,7 +38,7 @@ function loadTeams() {
     });
     memberTeamByName = nameMap;
     renderTeams();
-  });
+  }, (err) => { console.error(err); list.innerHTML = '<p style="color:#c0392b;">Could not load teams: ' + (err.code || err.message) + '</p>'; });
 }
 
 function renderTeams() {
@@ -62,7 +62,7 @@ function renderTeams() {
 
 async function createTeam(name) {
   try { await addDoc(collection(db, "attendance_teams"), { name: name.trim(), memberIds: [], memberNames: [], createdAt: new Date() }); return true; }
-  catch (e) { console.error(e); return false; }
+  catch (e) { console.error(e); return "Error creating team" + (e && e.code ? ` (${e.code})` : "") + ". Try a hard refresh (Ctrl+F5)."; }
 }
 
 async function exportReportPDF(eid) {
@@ -107,6 +107,7 @@ function loadMembers() {
       grid.appendChild(b);
     });
     list.appendChild(grid);
+    if (document.getElementById("teamsList")) renderTeams();
     anime({ targets: ".member-badge", scale: [0.8, 1], opacity: [0, 1], delay: anime.stagger(50) });
   });
 }
@@ -216,8 +217,9 @@ function setupListeners() {
     e.preventDefault();
     const inp = document.getElementById("teamName"), st = document.getElementById("teamFormStatus");
     const n = inp.value.trim(); if (!n) return;
-    if (await createTeam(n)) { inp.value = ""; st.textContent = "Team created!"; st.className = "form-status success"; setTimeout(() => { st.textContent = ""; }, 3000); }
-    else { st.textContent = "Error creating team."; st.className = "form-status error"; }
+    const res = await createTeam(n);
+    if (res === true) { inp.value = ""; st.textContent = "Team created!"; st.className = "form-status success"; setTimeout(() => { st.textContent = ""; }, 3000); }
+    else { st.textContent = res; st.className = "form-status error"; setTimeout(() => { st.textContent = ""; }, 6000); }
   });
 
   const tl = document.getElementById("teamsList");

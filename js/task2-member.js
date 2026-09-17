@@ -30,7 +30,7 @@ function loadTeams() {
       list.appendChild(div);
     });
     anime({ targets: "#teamsList .team-card", translateY: [30, 0], opacity: [0, 1], delay: anime.stagger(80) });
-  });
+  }, (err) => { console.error(err); list.innerHTML = '<p style="color:#c0392b;">Could not load teams: ' + (err.code || err.message) + '</p>'; });
 }
 
 function loadMembers() {
