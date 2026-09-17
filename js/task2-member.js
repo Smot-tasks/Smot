@@ -39,7 +39,7 @@ function loadMembers() {
     allMembers = [];
     snap.forEach((d) => allMembers.push({ id: d.id, name: d.data().name }));
     if (currentEventId) loadAttendance(currentEventId);
-  });
+  }, (err) => { console.error(err); });
 }
 
 function loadEvents() {
@@ -57,7 +57,7 @@ function loadEvents() {
       list.appendChild(div);
     });
     anime({ targets: "#eventsList .event-card", translateY: [50, 0], opacity: [0, 1], delay: anime.stagger(100) });
-  });
+  }, (err) => { console.error(err); list.innerHTML = '<p style="color:#c0392b;">Could not load events: ' + (err.code || err.message) + '</p>'; });
 }
 
 async function createEvent(name, leader, date) {

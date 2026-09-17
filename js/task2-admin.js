@@ -109,7 +109,7 @@ function loadMembers() {
     list.appendChild(grid);
     if (document.getElementById("teamsList")) renderTeams();
     anime({ targets: ".member-badge", scale: [0.8, 1], opacity: [0, 1], delay: anime.stagger(50) });
-  });
+  }, (err) => { console.error(err); list.innerHTML = '<p style="color:#c0392b;">Could not load members: ' + (err.code || err.message) + '</p>'; });
 }
 
 async function addMember(name) {
@@ -136,7 +136,7 @@ function loadEvents() {
       list.appendChild(div);
     });
     anime({ targets: ".events-container .event-card", translateY: [50, 0], opacity: [0, 1], delay: anime.stagger(100) });
-  });
+  }, (err) => { console.error(err); list.innerHTML = '<p style="color:#c0392b;">Could not load events: ' + (err.code || err.message) + '</p>'; });
 }
 
 async function deleteEvent(eid) {
@@ -180,7 +180,7 @@ function loadReports() {
         recs.forEach((r) => { h += `<tr><td>${r.memberName}</td><td>${memberTeamByName[r.memberName] || '-'}</td><td class="${r.attended ? 'status-present' : 'status-absent'}">${r.attended ? 'Present' : 'Absent'}</td><td>${r.arrivalTime || '-'}</td><td>${r.leaveTime || '-'}</td></tr>`; });
         h += '</tbody></table>';
         dd.innerHTML = h;
-      });
+      }, (err) => { console.error(err); if (dd) dd.innerHTML = '<p style="color:#c0392b;">Could not load records: ' + (err.code || err.message) + '</p>'; });
     });
   });
 }
