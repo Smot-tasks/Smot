@@ -86,8 +86,6 @@ async function exportReportPDF(eid) {
   } catch (e) { console.error(e); alert("Error exporting PDF."); }
 }
 
-function setupListeners() {
-
 function loadMembers() {
   const list = document.getElementById("membersList");
   if (!list) return;
