@@ -1,11 +1,13 @@
 import { db, auth } from "./firebase-config.js";
 import {
   collection, addDoc, getDocs, onSnapshot, query, orderBy,
-  updateDoc, deleteDoc, doc, where,
+  updateDoc, deleteDoc, doc, where, arrayUnion, arrayRemove,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 let allMembers = [];
+let allTeams = [];
+let memberTeamByName = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   auth.onAuthStateChanged((user) => {
@@ -20,7 +22,71 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-function init() { setupListeners(); loadMembers(); loadEvents(); loadReports(); }
+function init() { setupListeners(); loadMembers(); loadTeams(); loadEvents(); loadReports(); }
+
+function loadTeams() {
+  const list = document.getElementById("teamsList");
+  if (!list) return;
+  const q = query(collection(db, "attendance_teams"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snap) => {
+    allTeams = [];
+    const nameMap = {};
+    snap.forEach((d) => {
+      const t = d.data();
+      allTeams.push({ id: d.id, name: t.name, memberIds: t.memberIds || [], memberNames: t.memberNames || [] });
+      (t.memberNames || []).forEach((n) => { nameMap[n] = t.name; });
+    });
+    memberTeamByName = nameMap;
+    renderTeams();
+  });
+}
+
+function renderTeams() {
+  const list = document.getElementById("teamsList");
+  if (!list) return;
+  list.innerHTML = "";
+  if (allTeams.length === 0) { list.innerHTML = '<p style="opacity:0.7;">No teams created yet.</p>'; return; }
+  allTeams.forEach((t) => {
+    const available = allMembers.filter((m) => !t.memberIds.includes(m.id));
+    const sel = available.map((m) => `<option value="${m.id}">${m.name}</option>`).join("");
+    const membersHtml = (t.memberNames || []).map((n, i) =>
+      `<span class="member-badge team-member-badge"><span>${n}</span><button class="btn btn-danger btn-small remove-team-member-btn" data-team="${t.id}" data-mid="${t.memberIds[i] || ""}" data-mname="${n}" style="padding:2px 8px;font-size:0.75rem;">&times;</button></span>`
+    ).join("") || '<p style="opacity:0.7;margin:0;">No members in this team yet.</p>';
+    const div = document.createElement("div");
+    div.className = "team-card";
+    div.innerHTML = `<div class="team-card-header"><h3>${t.name}</h3><span style="opacity:0.7;font-size:0.9rem;">${(t.memberNames || []).length} member(s)</span><button class="btn btn-danger btn-small delete-team-btn" data-id="${t.id}">Delete</button></div><div class="team-members">${membersHtml}</div><div class="team-add-row" style="margin-top:10px;display:flex;gap:8px;align-items:center;"><select class="team-member-select" style="flex:1;min-width:160px;padding:6px;">${sel || '<option value="">All members are in teams</option>'}</select><button class="btn btn-small add-member-to-team-btn" data-id="${t.id}" ${sel ? "" : "disabled"}>Add Member</button></div>`;
+    list.appendChild(div);
+  });
+  anime({ targets: "#teamsList .team-card", translateY: [30, 0], opacity: [0, 1], delay: anime.stagger(80) });
+}
+
+async function createTeam(name) {
+  try { await addDoc(collection(db, "attendance_teams"), { name: name.trim(), memberIds: [], memberNames: [], createdAt: new Date() }); return true; }
+  catch (e) { console.error(e); return false; }
+}
+
+async function exportReportPDF(eid) {
+  try {
+    const eq = query(collection(db, "attendance_events"), where("__name__", "==", eid));
+    const es = await getDocs(eq);
+    if (es.empty) return;
+    let ev = null; es.forEach((e) => { ev = e.data(); });
+    const aq = query(collection(db, "attendance_records"), where("eventId", "==", eid));
+    const rs = await getDocs(aq);
+    const recs = []; rs.forEach((r) => recs.push(r.data()));
+    recs.sort((a, b) => (a.memberName || "").localeCompare(b.memberName || ""));
+    const rows = recs.map((r, i) => `<tr><td>${i + 1}</td><td>${r.memberName}</td><td>${memberTeamByName[r.memberName] || '-'}</td><td>${r.attended ? "Present" : "Absent"}</td><td>${r.arrivalTime || '-'}</td><td>${r.leaveTime || '-'}</td></tr>`).join("");
+    const now = new Date().toLocaleString();
+    const w = window.open("", "_blank", "width=900,height=700");
+    if (!w) { alert("Please allow pop-ups to export the PDF."); return; }
+    w.document.write(`<!doctype html><html><head><title>Report - ${ev.name}</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:24px;color:#111;}h1{margin:0 0 4px;}h2{margin:0 0 12px;font-weight:500;}table{width:100%;border-collapse:collapse;margin-top:16px;}th,td{border:1px solid #999;padding:8px 10px;text-align:left;font-size:14px;}th{background:#f0f0f0;}.meta{color:#555;font-size:13px;}</style></head><body><h1>Smot - Attendance Report</h1><h2>${ev.name} (${ev.date})</h2><p class="meta">Leader: ${ev.leaderName} &nbsp;|&nbsp; Generated: ${now} &nbsp;|&nbsp; Present: ${recs.filter((r) => r.attended).length}/${recs.length}</p><table><thead><tr><th>#</th><th>Member</th><th>Team</th><th>Status</th><th>Arrival</th><th>Leave</th></tr></thead><tbody>${rows || '<tr><td colspan="6">No attendance records.</td></tr>'}</tbody></table><p class="meta" style="margin-top:24px;">Choose "Print &gt; Save as PDF" in the print dialog to save this report as a PDF file.</p></body></html>`);
+    w.document.close();
+    w.focus();
+    w.print();
+  } catch (e) { console.error(e); alert("Error exporting PDF."); }
+}
+
+function setupListeners() {
 
 function loadMembers() {
   const list = document.getElementById("membersList");
@@ -98,7 +164,7 @@ function loadReports() {
       const card = document.createElement("div");
       card.className = "report-event-card";
       card.setAttribute("data-event-id", eid);
-      card.innerHTML = `<div class="report-event-header" data-id="${eid}" style="cursor:pointer;"><h3>${ev.name} <span class="event-date">(${ev.date})</span></h3><span class="present-count" style="color:var(--success-color);font-weight:600;">Loading...</span></div><div class="reports-placeholder hidden" id="reports-${eid}"><div class="report-card"><div class="report-card-body"><p><strong>Leader:</strong> ${ev.leaderName}</p><p style="margin-top:4px;"><strong>Date:</strong> ${ev.date}</p><p style="margin-top:8px;"><strong>Attendance Details:</strong></p><div id="details-${eid}" style="margin-top:10px;overflow-x:auto;"><p style="opacity:0.7;">Loading...</p></div></div></div></div>`;
+      card.innerHTML = `<div class="report-event-header" data-id="${eid}" style="cursor:pointer;"><h3>${ev.name} <span class="event-date">(${ev.date})</span></h3><span class="present-count" style="color:var(--success-color);font-weight:600;">Loading...</span><button class="btn btn-secondary btn-small pdf-report-btn" data-id="${eid}" style="margin-left:10px;">⬇ PDF</button></div><div class="reports-placeholder hidden" id="reports-${eid}"><div class="report-card"><div class="report-card-body"><p><strong>Leader:</strong> ${ev.leaderName}</p><p style="margin-top:4px;"><strong>Date:</strong> ${ev.date}</p><p style="margin-top:8px;"><strong>Attendance Details:</strong></p><div id="details-${eid}" style="margin-top:10px;overflow-x:auto;"><p style="opacity:0.7;">Loading...</p></div></div></div></div>`;
       list.appendChild(card);
       const aq = query(collection(db, "attendance_records"), where("eventId", "==", eid));
       onSnapshot(aq, (rs) => {
@@ -109,8 +175,8 @@ function loadReports() {
         const dd = document.getElementById(`details-${eid}`);
         if (!dd) return;
         if (recs.length === 0) { dd.innerHTML = '<p style="opacity:0.7;">No attendance records yet.</p>'; return; }
-        let h = '<table class="attendance-table"><thead><tr><th>Member</th><th>Status</th><th>Arrival</th><th>Leave</th></tr></thead><tbody>';
-        recs.forEach((r) => { h += `<tr><td>${r.memberName}</td><td class="${r.attended ? 'status-present' : 'status-absent'}">${r.attended ? 'Present' : 'Absent'}</td><td>${r.arrivalTime || '-'}</td><td>${r.leaveTime || '-'}</td></tr>`; });
+        let h = '<table class="attendance-table"><thead><tr><th>Member</th><th>Team</th><th>Status</th><th>Arrival</th><th>Leave</th></tr></thead><tbody>';
+        recs.forEach((r) => { h += `<tr><td>${r.memberName}</td><td>${memberTeamByName[r.memberName] || '-'}</td><td class="${r.attended ? 'status-present' : 'status-absent'}">${r.attended ? 'Present' : 'Absent'}</td><td>${r.arrivalTime || '-'}</td><td>${r.leaveTime || '-'}</td></tr>`; });
         h += '</tbody></table>';
         dd.innerHTML = h;
       });
@@ -145,8 +211,38 @@ function setupListeners() {
     }
   });
 
+  const tf = document.getElementById("teamForm");
+  if (tf) tf.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const inp = document.getElementById("teamName"), st = document.getElementById("teamFormStatus");
+    const n = inp.value.trim(); if (!n) return;
+    if (await createTeam(n)) { inp.value = ""; st.textContent = "Team created!"; st.className = "form-status success"; setTimeout(() => { st.textContent = ""; }, 3000); }
+    else { st.textContent = "Error creating team."; st.className = "form-status error"; }
+  });
+
+  const tl = document.getElementById("teamsList");
+  if (tl) tl.addEventListener("click", async (e) => {
+    const card = e.target.closest(".team-card");
+    if (!card) return;
+    if (e.target.classList.contains("add-member-to-team-btn")) {
+      const sel = card.querySelector(".team-member-select");
+      const mid = sel ? sel.value : "";
+      if (!mid) return;
+      const m = allMembers.find((x) => x.id === mid);
+      if (!m) return;
+      try { await updateDoc(doc(db, "attendance_teams", e.target.dataset.id), { memberIds: arrayUnion(mid), memberNames: arrayUnion(m.name) }); }
+      catch (err) { console.error(err); }
+    } else if (e.target.classList.contains("remove-team-member-btn")) {
+      try { await updateDoc(doc(db, "attendance_teams", e.target.dataset.team), { memberIds: arrayRemove(e.target.dataset.mid), memberNames: arrayRemove(e.target.dataset.mname) }); }
+      catch (err) { console.error(err); }
+    } else if (e.target.classList.contains("delete-team-btn")) {
+      if (confirm("Delete this team?")) { try { await deleteDoc(doc(db, "attendance_teams", e.target.dataset.id)); } catch (err) { console.error(err); } }
+    }
+  });
+
   const rl = document.getElementById("reportsList");
   if (rl) rl.addEventListener("click", (e) => {
+    if (e.target.classList.contains("pdf-report-btn")) { exportReportPDF(e.target.dataset.id); return; }
     const h = e.target.closest(".report-event-header");
     if (h) { const p = document.getElementById(`reports-${h.dataset.id}`); if (p) { const hid = p.classList.toggle("hidden"); if (!hid) anime({ targets: p.children, translateY: [-20, 0], opacity: [0, 1], delay: anime.stagger(80), easing: "easeOutExpo" }); } }
   });

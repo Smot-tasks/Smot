@@ -1534,3 +1534,10 @@ input:focus {
     margin-bottom: 10px;
   }
 }
+
+/* ===== Teams (task2) ===== */
+.team-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.team-card-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.team-card-header h3 { margin: 0; }
+.team-members { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+

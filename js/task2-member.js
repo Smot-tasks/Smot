@@ -12,7 +12,26 @@ let currentSearchTerm = "";
 
 document.addEventListener("DOMContentLoaded", () => { init(); });
 
-function init() { setupListeners(); loadEvents(); loadMembers(); }
+function init() { setupListeners(); loadEvents(); loadMembers(); loadTeams(); }
+
+function loadTeams() {
+  const list = document.getElementById("teamsList");
+  if (!list) return;
+  const q = query(collection(db, "attendance_teams"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snap) => {
+    list.innerHTML = "";
+    if (snap.empty) { list.innerHTML = '<p style="opacity:0.7;">No teams created yet.</p>'; return; }
+    snap.forEach((d) => {
+      const t = d.data();
+      const names = t.memberNames || [];
+      const div = document.createElement("div");
+      div.className = "team-card";
+      div.innerHTML = `<div class="team-card-header"><h3>${t.name}</h3><span style="opacity:0.7;font-size:0.9rem;">${names.length} member(s)</span></div><div class="team-members">${names.map((n) => `<span class="member-badge"><span>${n}</span></span>`).join("") || '<p style="opacity:0.7;margin:0;">No members in this team yet.</p>'}</div>`;
+      list.appendChild(div);
+    });
+    anime({ targets: "#teamsList .team-card", translateY: [30, 0], opacity: [0, 1], delay: anime.stagger(80) });
+  });
+}
 
 function loadMembers() {
   const q = query(collection(db, "attendance_members"), orderBy("name", "asc"));
